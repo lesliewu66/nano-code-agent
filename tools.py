@@ -2,6 +2,9 @@ import subprocess
 from pathlib import Path
 from config import WORKDIR
 from todo import TodoManager
+from skill_loader import SKILL_LOADER
+from context_compact import compact_tool
+from task_system import TASKS
 
 TODO = TodoManager()
 
@@ -43,6 +46,50 @@ TOOLS = BASE_TOOLS + [
             "prompt": {"type": "string", "description": "Detailed instructions for the subagent."},
             "description": {"type": "string", "description": "Short description of the task for logging."},
         }, "required": ["prompt"]},
+    }},
+    {"type": "function", "function": {
+        "name": "load_skill",
+        "description": "Load specialized knowledge by name. Call this before tackling unfamiliar topics.",
+        "parameters": {"type": "object", "properties": {
+            "name": {"type": "string", "description": "Skill name to load"},
+        }, "required": ["name"]},
+    }},
+    {"type": "function", "function": {
+        "name": "compact",
+        "description": "Trigger manual conversation compression. Use when context is getting too long.",
+        "parameters": {"type": "object", "properties": {
+            "focus": {"type": "string", "description": "What to preserve in the summary (optional)"},
+        }},
+    }},
+    {"type": "function", "function": {
+        "name": "task_create",
+        "description": "Create a new persistent task with optional description.",
+        "parameters": {"type": "object", "properties": {
+            "subject": {"type": "string", "description": "Short task title"},
+            "description": {"type": "string", "description": "Detailed description"},
+        }, "required": ["subject"]},
+    }},
+    {"type": "function", "function": {
+        "name": "task_update",
+        "description": "Update a task's status or dependencies. When status becomes 'completed', dependencies are auto-cleared.",
+        "parameters": {"type": "object", "properties": {
+            "task_id": {"type": "integer", "description": "Task ID to update"},
+            "status": {"type": "string", "enum": ["pending", "in_progress", "completed"], "description": "New status"},
+            "addBlockedBy": {"type": "array", "items": {"type": "integer"}, "description": "Task IDs this task depends on"},
+            "addBlocks": {"type": "array", "items": {"type": "integer"}, "description": "Task IDs blocked by this task"},
+        }, "required": ["task_id"]},
+    }},
+    {"type": "function", "function": {
+        "name": "task_list",
+        "description": "List all tasks with their status and blockers.",
+        "parameters": {"type": "object", "properties": {}},
+    }},
+    {"type": "function", "function": {
+        "name": "task_get",
+        "description": "Get full details of a specific task by ID.",
+        "parameters": {"type": "object", "properties": {
+            "task_id": {"type": "integer", "description": "Task ID to retrieve"},
+        }, "required": ["task_id"]},
     }},
 ]
 
@@ -100,4 +147,10 @@ TOOL_HANDLERS = {
     "write_file": lambda **kw: run_write(kw["path"], kw["content"]),
     "edit_file":  lambda **kw: run_edit(kw["path"], kw["old_text"], kw["new_text"]),
     "todo":       lambda **kw: TODO.update(kw["items"]),
+    "load_skill": lambda **kw: SKILL_LOADER.get_content(kw["name"]),
+    "compact":     lambda **kw: compact_tool(kw.get("focus")),
+    "task_create": lambda **kw: TASKS.create(kw["subject"], kw.get("description", "")),
+    "task_update": lambda **kw: TASKS.update(kw["task_id"], kw.get("status"), kw.get("addBlockedBy"), kw.get("addBlocks")),
+    "task_list":   lambda **kw: TASKS.list_all(),
+    "task_get":    lambda **kw: TASKS.get(kw["task_id"]),
 }

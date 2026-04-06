@@ -11,5 +11,15 @@ client = OpenAI(
 )
 MODEL = os.getenv("MODEL_ID", "kimi-k2-thinking")
 WORKDIR = Path(os.getcwd())
-SYSTEM = f"You are a coding agent at {WORKDIR}. Use tools to solve tasks. Act, don't explain. Use the task tool to delegate exploration or subtasks."
+
+# Context compact settings
+COMPACT_THRESHOLD = int(os.getenv("COMPACT_THRESHOLD", "50000"))
+
+# Import skill loader after WORKDIR is defined to avoid circular imports
+from skill_loader import SKILL_LOADER
+
+SYSTEM = f"""You are a coding agent at {WORKDIR}. Use tools to solve tasks. Act, don't explain.
+Use load_skill to access specialized knowledge before tackling unfamiliar topics.
+Skills available:
+{SKILL_LOADER.get_descriptions()}"""
 SUBAGENT_SYSTEM = f"You are a coding subagent at {WORKDIR}. Complete the given task, then summarize your findings."

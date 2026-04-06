@@ -1,7 +1,8 @@
 import json
-from config import client, MODEL
+from config import client, MODEL, COMPACT_THRESHOLD
 from tools import TOOLS, TOOL_HANDLERS
 from subagent import run_subagent
+from context_compact import micro_compact, auto_compact, estimate_tokens
 
 def _log(label: str, text: str, color: int = 0) -> None:
     if not text:
@@ -13,6 +14,14 @@ def _log(label: str, text: str, color: int = 0) -> None:
 def agent_loop(messages: list) -> None:
     rounds_since_todo = 0
     while True:
+        # Layer 1: micro_compact - silently compress old tool results
+        micro_compact(messages)
+        
+        # Layer 2: auto_compact - if token estimate exceeds threshold
+        if estimate_tokens(messages) > COMPACT_THRESHOLD:
+            print("\033[90m[auto_compact triggered]\033[0m")
+            auto_compact(messages)
+        
         print("\033[90m--- LLM call ---\033[0m")
         response = client.chat.completions.create(
             model=MODEL, messages=messages,
@@ -37,6 +46,7 @@ def agent_loop(messages: list) -> None:
 
         results = []
         used_todo = False
+        manual_compact = False
         for tool_call in message.tool_calls:
             args = json.loads(tool_call.function.arguments)
             _log("TOOL_CALL", f"{tool_call.function.name}({json.dumps(args, ensure_ascii=False)})", color=36)
@@ -45,6 +55,10 @@ def agent_loop(messages: list) -> None:
                 desc = args.get("description", "subtask")
                 print(f"\033[90m  >> dispatching subagent: {desc}\033[0m")
                 output = run_subagent(args["prompt"])
+            elif tool_call.function.name == "compact":
+                # Layer 3: manual compact - mark for compression after results
+                manual_compact = True
+                output = "Compressing..."
             else:
                 handler = TOOL_HANDLERS.get(tool_call.function.name)
                 try:
@@ -68,3 +82,8 @@ def agent_loop(messages: list) -> None:
         messages.extend(results)
         if rounds_since_todo >= 3:
             messages.append({"role": "user", "content": "<reminder>Update your todos.</reminder>"})
+        
+        # Layer 3: manual compact triggered by compact tool
+        if manual_compact:
+            print("\033[90m[manual compact triggered]\033[0m")
+            auto_compact(messages)

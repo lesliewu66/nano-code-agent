@@ -6,7 +6,7 @@ if __name__ == "__main__":
     history = [{"role": "system", "content": SYSTEM}]
     while True:
         try:
-            query = input("\033[36ms03 >> \033[0m")
+            query = input("\033[36ms05 >> \033[0m")
         except (EOFError, KeyboardInterrupt):
             break
         if query.strip().lower() in ("q", "exit", ""):
