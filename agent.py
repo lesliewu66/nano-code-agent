@@ -3,6 +3,7 @@ from config import client, MODEL, COMPACT_THRESHOLD
 from tools import TOOLS, TOOL_HANDLERS
 from subagent import run_subagent
 from context_compact import micro_compact, auto_compact, estimate_tokens
+from background_tasks import BG
 
 def _log(label: str, text: str, color: int = 0) -> None:
     if not text:
@@ -14,6 +15,21 @@ def _log(label: str, text: str, color: int = 0) -> None:
 def agent_loop(messages: list) -> None:
     rounds_since_todo = 0
     while True:
+        # Check background task notifications before LLM call
+        notifs = BG.drain_notifications()
+        if notifs and len(messages) > 0:
+            notif_text = "\n".join(
+                f"[bg:{n['task_id']}] {n['status']}: {n['result']}" for n in notifs
+            )
+            messages.append({
+                "role": "user",
+                "content": f"<background-results>\n{notif_text}\n</background-results>"
+            })
+            messages.append({
+                "role": "assistant",
+                "content": "Noted background results."
+            })
+        
         # Layer 1: micro_compact - silently compress old tool results
         micro_compact(messages)
         

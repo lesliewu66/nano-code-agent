@@ -5,6 +5,7 @@ from todo import TodoManager
 from skill_loader import SKILL_LOADER
 from context_compact import compact_tool
 from task_system import TASKS
+from background_tasks import BG
 
 TODO = TodoManager()
 
@@ -91,6 +92,20 @@ TOOLS = BASE_TOOLS + [
             "task_id": {"type": "integer", "description": "Task ID to retrieve"},
         }, "required": ["task_id"]},
     }},
+    {"type": "function", "function": {
+        "name": "background_run",
+        "description": "Run a command in background thread. Returns task_id immediately. Use for long-running commands (builds, tests, downloads).",
+        "parameters": {"type": "object", "properties": {
+            "command": {"type": "string", "description": "Shell command to run in background"},
+        }, "required": ["command"]},
+    }},
+    {"type": "function", "function": {
+        "name": "check_background",
+        "description": "Check background task status. Omit task_id to list all tasks.",
+        "parameters": {"type": "object", "properties": {
+            "task_id": {"type": "string", "description": "Task ID to check (optional)"},
+        }},
+    }},
 ]
 
 def safe_path(p: str) -> Path:
@@ -152,5 +167,7 @@ TOOL_HANDLERS = {
     "task_create": lambda **kw: TASKS.create(kw["subject"], kw.get("description", "")),
     "task_update": lambda **kw: TASKS.update(kw["task_id"], kw.get("status"), kw.get("addBlockedBy"), kw.get("addBlocks")),
     "task_list":   lambda **kw: TASKS.list_all(),
-    "task_get":    lambda **kw: TASKS.get(kw["task_id"]),
+    "task_get":        lambda **kw: TASKS.get(kw["task_id"]),
+    "background_run":  lambda **kw: BG.run(kw["command"]),
+    "check_background":lambda **kw: BG.check(kw.get("task_id")),
 }
