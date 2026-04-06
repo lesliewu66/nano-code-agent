@@ -5,7 +5,7 @@ from todo import TodoManager
 
 TODO = TodoManager()
 
-TOOLS = [
+BASE_TOOLS = [
     {"type": "function", "function": {
         "name": "bash",
         "description": "Run a shell command.",
@@ -30,6 +30,19 @@ TOOLS = [
         "name": "todo",
         "description": "Update task list. Track progress on multi-step tasks.",
         "parameters": {"type": "object", "properties": {"items": {"type": "array", "items": {"type": "object", "properties": {"id": {"type": "string"}, "text": {"type": "string"}, "status": {"type": "string", "enum": ["pending", "in_progress", "completed"]}}, "required": ["id", "text", "status"]}}}, "required": ["items"]},
+    }},
+]
+
+CHILD_TOOLS = BASE_TOOLS
+
+TOOLS = BASE_TOOLS + [
+    {"type": "function", "function": {
+        "name": "task",
+        "description": "Spawn a subagent with fresh context. It shares the filesystem but not conversation history. Use this to delegate exploration or subtasks.",
+        "parameters": {"type": "object", "properties": {
+            "prompt": {"type": "string", "description": "Detailed instructions for the subagent."},
+            "description": {"type": "string", "description": "Short description of the task for logging."},
+        }, "required": ["prompt"]},
     }},
 ]
 

@@ -8,7 +8,8 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "/Users/wuzhonghao/python/routeAgent/main.py",
+            "program": "${workspaceFolder}/main.py",
+            "python": "/opt/homebrew/Caskroom/miniconda/base/bin/python",
             "console": "integratedTerminal"
         }
     ]

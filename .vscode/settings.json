@@ -1,5 +1,5 @@
 {
-    "python.defaultInterpreterPath": "/Users/wuzhonghao/miniconda3/bin/python",
+    "python.defaultInterpreterPath": "/opt/homebrew/Caskroom/miniconda/base/bin/python",
     "python.analysis.typeCheckingMode": "off",
     "python.terminal.activateEnvironment": true,
     "terminal.integrated.profiles.osx": {

@@ -6,7 +6,7 @@ if __name__ == "__main__":
     history = [{"role": "system", "content": SYSTEM}]
     while True:
         try:
-            query = input("\033[36ms02 >> \033[0m")
+            query = input("\033[36ms03 >> \033[0m")
         except (EOFError, KeyboardInterrupt):
             break
         if query.strip().lower() in ("q", "exit", ""):
@@ -17,5 +17,5 @@ if __name__ == "__main__":
         if isinstance(last_message, dict):
             content = last_message.get("content")
             if content:
-                print(content)
+                print(f"\033[32m[FINAL]\033[0m {content}")
         print()
