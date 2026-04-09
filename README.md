@@ -1,274 +1,116 @@
-# Multi-Agent Login System
+# RouteAgent
 
-A complete login system built with multiple AI agents working collaboratively.
-
-## System Architecture
-
-This system uses a multi-agent architecture where each agent has a specific responsibility:
-
-### Agents Overview
-
-1. **DatabaseAgent** 🤖
-   - Role: Database Manager
-   - Responsibility: User data storage and retrieval
-   - Storage: SQLite database (`users.db`)
-   - Table: `users` (id, username, password_hash, created_at)
-
-2. **UserManagementAgent** 👤
-   - Role: User Registration Manager
-   - Responsibility: New user registration with validation
-   - Features:
-     - Username validation (3-20 chars, alphanumeric)
-     - Password length requirement (min 6 chars)
-     - Duplicate username prevention
-     - Password hashing with bcrypt
-
-3. **AuthenticationAgent** 🔐
-   - Role: Authentication Manager
-   - Responsibility: User login, logout, and session management
-   - Features:
-     - Credential verification
-     - Secure session token generation
-     - Active session tracking
-     - Password validation with bcrypt
-
-4. **Main Coordinator** 🎛️
-   - Role: System Coordinator
-   - Responsibility: Integration and user interface
-   - Features:
-     - Command-line interface
-     - Coordination between all agents
-     - Session management
-     - User management
+A lightweight coding agent with HTTP API, built with OpenAI-compatible LLMs.
 
 ## Features
 
-### User Management
-- ✅ User registration with validation
-- ✅ Password hashing (bcrypt)
-- ✅ Username uniqueness check
-- ✅ List all registered users
+- **Tool Use**: Execute bash commands, read/write files
+- **HTTP API**: RESTful interface for integration
+- **Context Management**: Automatic conversation compression
+- **Extensible**: Easy to add new tools
 
-### Authentication
-- ✅ User login with credential verification
-- ✅ Secure session token generation (64-char hex)
-- ✅ Session validation
-- ✅ User logout with session invalidation
-- ✅ Active session tracking
+## Quick Start
 
-### Security Features
-- ✅ Password hashing with salt (bcrypt)
-- ✅ Secure session tokens
-- ✅ Username format validation
-- ✅ Password length enforcement
-
-## Installation
-
-1. Install required dependencies:
-```bash
-pip install bcrypt
-```
-
-2. Initialize the database:
-```bash
-sqlite3 users.db "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
-```
-
-## Usage
-
-### Running the System
+### Installation
 
 ```bash
-python login_system.py
+# Clone the repository
+git clone https://github.com/yourusername/routeAgent.git
+cd routeAgent
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Or install as a package
+pip install -e .
 ```
 
-### Menu Options
+### Configuration
 
-1. **Register new user**
-   - Enter username (3-20 alphanumeric characters)
-   - Enter password (min 6 characters)
-   - System validates and creates user account
+Create a `.env` file:
 
-2. **Login**
-   - Enter username and password
-   - System verifies credentials
-   - Returns session token upon success
-
-3. **Logout**
-   - Enter session token
-   - Invalidates the session
-
-4. **List all users**
-   - Shows all registered users with creation dates
-
-5. **Show active sessions**
-   - Displays all currently active login sessions
-
-6. **Verify session token**
-   - Validates a session token
-   - Returns associated username if valid
-
-7. **Exit**
-   - Shuts down the system
-   - Clears all active sessions
-
-## Testing
-
-### Run Individual Tests
-
-**Test Registration:**
 ```bash
-python test_registration.py
+cp .env.example .env
+# Edit .env with your API keys
 ```
 
-**Test Login:**
+Required environment variables:
+- `KIMI_API_KEY`: Your API key
+- `KIMI_BASE_URL`: API base URL (default: https://api.moonshot.cn/v1)
+- `MODEL_ID`: Model ID (default: kimi-k2-thinking)
+
+### CLI Mode
+
 ```bash
-python test_login.py
+python main.py --mode cli
 ```
 
-### Test Flow
+### HTTP Server Mode
 
-1. **Registration Flow:**
-   - Username format validation
-   - Username availability check
-   - Password hashing
-   - User creation in database
-
-2. **Login Flow:**
-   - User lookup
-   - Password verification
-   - Session token generation
-   - Session storage
-
-3. **Session Management:**
-   - Token verification
-   - Session invalidation on logout
-   - Active session tracking
-
-## Example Session
-
-```
-🚀 Starting Multi-Agent Login System...
-System initialized with agents:
-  - DatabaseAgent: Managing data storage
-  - UserManagementAgent: Handling registrations
-  - AuthenticationAgent: Managing authentication
-
-==================================================
-      MULTI-AGENT LOGIN SYSTEM
-==================================================
-1. Register new user
-2. Login
-3. Logout
-4. List all users
-5. Show active sessions
-6. Verify session token
-7. Exit
-==================================================
-
-Enter your choice (1-7): 1
-
-=== USER REGISTRATION ===
-Enter username (3-20 chars, alphanumeric): alice
-Enter password (min 6 chars): mypassword
-
-✅ Registration successful! Welcome, alice!
-
-(Continue with login...)
-```
-
-## Technical Details
-
-### Database Schema
-```sql
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Password Hashing
-- Algorithm: bcrypt
-- Salt: Auto-generated
-- Work factor: Default (12)
-
-### Session Tokens
-- Type: Cryptographically random
-- Format: 64-character hexadecimal
-- Storage: In-memory dictionary
-- No expiration (for demo purposes)
-
-## Security Notes
-
-⚠️ **Important:** This is a demonstration system. For production use:
-- Add HTTPS/TLS
-- Implement session expiration
-- Add rate limiting
-- Use environment variables for secrets
-- Add email verification
-- Implement password reset functionality
-- Add audit logging
-
-## Cleanup
-
-To reset the system:
 ```bash
-# Stop the login_system.py if running
-# Remove database
-rm users.db
-# Remove sessions (they're in-memory, so restart clears them)
+python main.py --mode server
+# Or
+uvicorn route_agent.api.server:create_app --reload
 ```
 
-## Files Structure
+## API Endpoints
 
-```
-.
-├── login_system.py          # Main coordinator with CLI
-├── test_registration.py     # Registration test script
-├── test_login.py           # Login test script
-├── README.md               # This documentation
-└── users.db                # SQLite database (created on first run)
+### Health Check
+```bash
+curl http://localhost:8000/health
 ```
 
-## Agent Communication Flow
-
-### Registration Flow:
-```
-User → Main Coordinator → UserManagementAgent 
-                            ↓
-                     DatabaseAgent (check exists)
-                            ↓
-                     DatabaseAgent (save user)
-                            ↓
-                    Success response
+### List Tools
+```bash
+curl http://localhost:8000/tools
 ```
 
-### Login Flow:
-```
-User → Main Coordinator → AuthenticationAgent
-                            ↓
-                     DatabaseAgent (get user)
-                            ↓
-                     AuthenticationAgent (verify password)
-                            ↓
-                     Generate session token
-                            ↓
-                    Return token
+### Chat
+```bash
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "List files in current directory"}'
 ```
 
-## Future Enhancements
+## Project Structure
 
-- [ ] Add role-based access control (RBAC)
-- [ ] Email verification system
-- [ ] Password reset functionality
-- [ ] Session expiration and refresh tokens
-- [ ] API endpoints for web/mobile access
-- [ ] Multi-factor authentication (MFA)
-- [ ] Audit logging
-- [ ] User profile management
+```
+routeAgent/
+├── route_agent/          # Main package
+│   ├── core/            # Core logic
+│   │   ├── config.py    # Configuration
+│   │   ├── agent.py     # Agent class
+│   │   └── tools.py     # Tool registry
+│   ├── api/             # HTTP API
+│   │   └── server.py    # FastAPI app
+│   └── utils/           # Utilities
+├── skills/              # Skill definitions
+├── main.py              # Entry point
+├── requirements.txt     # Dependencies
+└── README.md            # This file
+```
+
+## Available Tools
+
+- `bash`: Execute shell commands
+- `read_file`: Read file contents
+- `write_file`: Write files
+- `edit_file`: Replace text in files
+
+## Development
+
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
+
+# Format code
+black route_agent/
+ruff check route_agent/
+
+# Run tests
+pytest
+```
 
 ## License
 
-This is a demonstration system for educational purposes.
+MIT License - see LICENSE file
