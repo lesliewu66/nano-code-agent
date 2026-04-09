@@ -4,6 +4,7 @@ from tools import TOOLS, TOOL_HANDLERS
 from subagent import run_subagent
 from context_compact import micro_compact, auto_compact, estimate_tokens
 from background_tasks import BG
+from agent_teams import BUS
 
 def _log(label: str, text: str, color: int = 0) -> None:
     if not text:
@@ -15,6 +16,19 @@ def _log(label: str, text: str, color: int = 0) -> None:
 def agent_loop(messages: list) -> None:
     rounds_since_todo = 0
     while True:
+        # Check inbox messages from teammates (Lead only)
+        inbox = BUS.read_inbox("lead")
+        if inbox:
+            inbox_text = json.dumps(inbox, indent=2, ensure_ascii=False)
+            messages.append({
+                "role": "user",
+                "content": f"<inbox>\n{inbox_text}\n</inbox>"
+            })
+            messages.append({
+                "role": "assistant",
+                "content": "Noted inbox messages from teammates."
+            })
+        
         # Check background task notifications before LLM call
         notifs = BG.drain_notifications()
         if notifs and len(messages) > 0:

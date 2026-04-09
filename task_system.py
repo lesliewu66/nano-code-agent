@@ -51,7 +51,8 @@ class TaskManager:
         return json.dumps(self._load(task_id), indent=2)
     
     def update(self, task_id: int, status: str = None,
-               addBlockedBy: list = None, addBlocks: list = None) -> str:
+               addBlockedBy: list = None, addBlocks: list = None,
+               worktree: str = None) -> str:
         """Update task status or dependencies."""
         task = self._load(task_id)
         
@@ -78,6 +79,9 @@ class TaskManager:
                 except ValueError:
                     pass  # Blocked task doesn't exist
         
+        if worktree is not None:
+            task["worktree"] = worktree
+        
         self._save(task)
         return json.dumps(task, indent=2)
     
@@ -88,6 +92,24 @@ class TaskManager:
             if completed_id in task.get("blockedBy", []):
                 task["blockedBy"].remove(completed_id)
                 self._save(task)
+    
+    def bind_worktree(self, task_id: int, worktree: str, owner: str = "") -> str:
+        """Bind a task to a worktree"""
+        task = self._load(task_id)
+        task["worktree"] = worktree
+        if owner:
+            task["owner"] = owner
+        if task["status"] == "pending":
+            task["status"] = "in_progress"
+        self._save(task)
+        return json.dumps(task, indent=2)
+    
+    def unbind_worktree(self, task_id: int) -> str:
+        """Unbind worktree from a task"""
+        task = self._load(task_id)
+        task["worktree"] = ""
+        self._save(task)
+        return json.dumps(task, indent=2)
     
     def list_all(self) -> str:
         """List all tasks with status summary."""
@@ -102,7 +124,9 @@ class TaskManager:
         for t in tasks:
             marker = {"pending": "[ ]", "in_progress": "[>]", "completed": "[x]"}.get(t["status"], "[?]")
             blocked = f" (blocked by: {t['blockedBy']})" if t.get("blockedBy") else ""
-            lines.append(f"{marker} #{t['id']}: {t['subject']}{blocked}")
+            wt = f" [wt:{t['worktree']}]" if t.get("worktree") else ""
+            owner = f" @{t['owner']}" if t.get("owner") else ""
+            lines.append(f"{marker} #{t['id']}: {t['subject']}{owner}{wt}{blocked}")
         
         return "\n".join(lines)
 
