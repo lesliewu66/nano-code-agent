@@ -1,0 +1,33 @@
+# Auto-detection of text file properties
+* text=auto
+
+# Python source files
+*.py text diff=python
+*.pyw text
+
+# Markdown and documentation
+*.md text
+*.rst text
+
+# Configuration files
+*.cfg text
+*.ini text
+*.toml text
+*.yaml text
+*.yml text
+*.json text
+
+# Environment files (template only, never actual secrets)
+.env.example text
+
+# Shell scripts
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Binary files - never modify
+*.pyc binary
+*.pyo binary
+*.egg binary
+*.png binary
+*.jpg binary
+*.ico binary

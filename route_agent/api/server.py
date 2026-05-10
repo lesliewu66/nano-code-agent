@@ -1,10 +1,16 @@
-"""FastAPI HTTP server"""
+"""FastAPI HTTP server — add new endpoints here.
+
+Extending the API:
+  from fastapi import APIRouter
+  router = APIRouter(prefix="/v1", tags=["Custom"])
+  app.include_router(router)
+"""
 from typing import List, Optional
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 from ..core.agent import Agent
-from ..core.tools import ToolRegistry
 from ..core.config import Config
 
 
@@ -47,12 +53,12 @@ def create_app() -> FastAPI:
         description="A lightweight coding agent with HTTP interface",
         version="1.0.0"
     )
-    
+
     @app.get("/health")
     async def health_check():
         """Health check endpoint"""
         return {"status": "ok", "version": "1.0.0"}
-    
+
     @app.get("/tools", response_model=List[ToolInfo])
     async def list_tools():
         """List available tools"""
@@ -65,17 +71,17 @@ def create_app() -> FastAPI:
                 description=func.get("description", "")
             ))
         return tools
-    
+
     @app.post("/chat", response_model=ChatResponse)
     async def chat(request: ChatRequest):
         """Chat with the agent"""
         agent = get_agent()
         result = agent.run(request.message)
-        
+
         return ChatResponse(
             response=result["content"],
             reasoning=result.get("reasoning"),
             tools_used=result.get("tool_calls", [])
         )
-    
+
     return app
