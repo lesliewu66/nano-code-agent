@@ -1,6 +1,7 @@
 """Agent main class"""
 import json
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from openai import OpenAI
 
 from .config import Config
@@ -9,10 +10,13 @@ from .tools import ToolRegistry
 
 class Agent:
     """Coding agent with tool use capabilities"""
-    
+
     def __init__(self):
         self.config = Config()
         self.tools = ToolRegistry(self.config.WORKDIR)
+        # Register additional tools from route_agent/tools/ here:
+        #   from route_agent.tools.web_search import web_search
+        #   self.tools.handlers["web_search"] = web_search
         self.client = OpenAI(
             api_key=self.config.API_KEY,
             base_url=self.config.BASE_URL
@@ -25,10 +29,10 @@ Use the available tools to solve tasks efficiently.
 - edit_file: Modify existing files
 
 Act directly, minimize explanations."""
-    
+
     def chat(self, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Process a chat conversation with full tool-use loop."""
-        MAX_TOOL_ITERATIONS = 10
+        max_tool_iterations = 10
 
         # Ensure system prompt is first
         if not messages or messages[0].get("role") != "system":
@@ -36,7 +40,7 @@ Act directly, minimize explanations."""
 
         all_tool_calls: List[Dict[str, Any]] = []
 
-        for _ in range(MAX_TOOL_ITERATIONS):
+        for _ in range(max_tool_iterations):
             response = self.client.chat.completions.create(
                 model=self.config.MODEL,
                 messages=messages,
@@ -93,7 +97,7 @@ Act directly, minimize explanations."""
 
         # Max iterations exceeded
         return {
-            "content": f"Max iterations ({MAX_TOOL_ITERATIONS}) exceeded. Task may be incomplete.",
+            "content": f"Max iterations ({max_tool_iterations}) exceeded. Task may be incomplete.",
             "tool_calls": all_tool_calls,
             "reasoning": ""
         }

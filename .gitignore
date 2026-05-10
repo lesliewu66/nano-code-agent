@@ -1,8 +1,38 @@
 # Environment
 .env
 .env.local
+.env.*.local
+
+# Python
 __pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+.pytest_cache/
+.coverage
+.coverage.*
+coverage/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific
 .claude
 .specify
-.vscode/
 CLAUDE.md
+/specs
+.data/

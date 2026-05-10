@@ -5,13 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "route-agent"
 version = "1.0.0"
-description = "A lightweight coding agent with HTTP API"
+description = "A lightweight coding agent with tool use and HTTP API, built with OpenAI-compatible LLMs"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "lesliewu66", email = "lesliewu19990801@gmail.com"}
 ]
+urls = {Homepage = "https://github.com/lesliewu66/routeAgent", Source = "https://github.com/lesliewu66/routeAgent"}
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -44,11 +45,24 @@ route-agent = "main:main"
 where = ["."]
 include = ["route_agent*"]
 
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N"]
+ignore = ["E501"]
+
 [tool.black]
 line-length = 100
 target-version = ['py39']
 
-[tool.ruff]
-line-length = 100
-select = ["E", "F", "W"]
-ignore = ["E501"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.coverage.run]
+source = ["route_agent"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+fail_under = 70

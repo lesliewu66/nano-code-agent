@@ -1,24 +1,25 @@
 """Tool registry - essential tools only"""
 import subprocess
 from pathlib import Path
-from typing import Callable, Dict, Any
+from typing import Callable, Dict
 
 
 class ToolRegistry:
     """Registry of available tools"""
-    
+
     def __init__(self, workdir: Path):
         self.workdir = workdir
         self.handlers: Dict[str, Callable] = {}
         self._register_defaults()
-    
+
     def _safe_path(self, p: str) -> Path:
         """Ensure path is within workspace"""
         path = (self.workdir / p).resolve()
-        if not path.is_relative_to(self.workdir):
+        workdir = self.workdir.resolve()
+        if not path.is_relative_to(workdir):
             raise ValueError(f"Path escapes workspace: {p}")
         return path
-    
+
     def _register_defaults(self):
         """Register default tools"""
         self.handlers = {
@@ -27,7 +28,7 @@ class ToolRegistry:
             "write_file": self._write_file,
             "edit_file": self._edit_file,
         }
-    
+
     def _bash(self, command: str, **kwargs) -> str:
         """Execute shell command"""
         dangerous = ["rm -rf /", "sudo", "shutdown", "reboot"]
@@ -42,7 +43,7 @@ class ToolRegistry:
             return out[:50000] if out else "(no output)"
         except subprocess.TimeoutExpired:
             return "Error: Timeout (120s)"
-    
+
     def _read_file(self, path: str, limit: int = None, **kwargs) -> str:
         """Read file contents"""
         try:
@@ -53,7 +54,7 @@ class ToolRegistry:
             return "\n".join(lines)[:50000]
         except Exception as e:
             return f"Error: {e}"
-    
+
     def _write_file(self, path: str, content: str, **kwargs) -> str:
         """Write file"""
         try:
@@ -63,7 +64,7 @@ class ToolRegistry:
             return f"Wrote {len(content)} bytes to {path}"
         except Exception as e:
             return f"Error: {e}"
-    
+
     def _edit_file(self, path: str, old_text: str, new_text: str, **kwargs) -> str:
         """Edit file by replacing text"""
         try:
@@ -75,7 +76,7 @@ class ToolRegistry:
             return f"Edited {path}"
         except Exception as e:
             return f"Error: {e}"
-    
+
     def get_tools_schema(self) -> list:
         """Get OpenAI-compatible tools schema"""
         return [
@@ -138,7 +139,7 @@ class ToolRegistry:
                 }
             },
         ]
-    
+
     def execute(self, name: str, arguments: dict) -> str:
         """Execute a tool by name"""
         handler = self.handlers.get(name)

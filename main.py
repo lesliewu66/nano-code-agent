@@ -8,7 +8,10 @@ from route_agent.core.agent import Agent
 
 def run_cli():
     """Run interactive CLI mode"""
-    Config.ensure_dirs()
+    try:
+        Config.ensure_dirs()
+    except SystemExit as e:
+        sys.exit(e.code)
     agent = Agent()
     
     print(f"RouteAgent v1.0.0")
