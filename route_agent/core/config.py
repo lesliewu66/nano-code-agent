@@ -14,9 +14,9 @@ class Config:
     DATA_DIR = WORKDIR / ".data"
     
     # LLM
-    MODEL = os.getenv("MODEL_ID", "kimi-k2-thinking")
-    API_KEY = os.getenv("KIMI_API_KEY")
-    BASE_URL = os.getenv("KIMI_BASE_URL", "https://api.moonshot.cn/v1")
+    MODEL = os.getenv("MODEL_ID", "deepseek-chat")
+    API_KEY = os.getenv("DEEPSEEK_API_KEY")
+    BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
     
     # Context
     COMPACT_THRESHOLD = int(os.getenv("COMPACT_THRESHOLD", "50000"))
